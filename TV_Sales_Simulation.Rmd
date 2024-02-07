@@ -1,0 +1,191 @@
+---
+title: "TV Sales Simulation"
+author: "Bronson Bagwell"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+```
+
+This problem is slightly modified from _Business Analytics: Data Analysis and Decision Making_ by Albright and Winston; 6th edition
+
+A used electronics store is planning on a seven-day promotion on a discontinued model of a 31 in TV.  At a price of \$575 per TV, the estimated daily demand is:
+
+|Demand|0|1|2|3|4|5|
+|:-----:|:-----:|:-----:|:-----:|:-----:|:-----:|:-----:|
+| Probability | 0.15|0.20|0.30|0.20|0.10|0.05|
+
+They can order up to 50 TVs from a surplus dealer at a cost \$325.  The dealer will buy back whatever is left after the promotion for \$250 per TV.
+
+1) First, write a line of code to calculate net income for a single scenario.  For example, what is the net income if we bought 30 TVs and sold a total of 20 TVs over the seven days. Write your code below.  You answer should be \$4250.
+
+```{r}
+knitr::opts_chunk$set(echo = TRUE)
+# Wholesale, retail, and supplier buy back amount
+tvCost <- 325 
+tvRetail <- 575 
+tvRefund <- 250 
+
+#Total TVs purchased for store inventory, TVs sold to customers, and surplus TVs
+inventory <- 30
+sold <- 20
+returned <- inventory - sold 
+
+#Net margin is the 
+net_margin <- (-1*(inventory * tvCost)) + (sold * tvRetail) + (returned * tvRefund)
+paste("Profit = ", net_margin)
+```
+
+2) Next, let's add in variable demand.  Set your seed to 100 (for reproducibility) and simulate 7 days of demand.  Once again, test your code with a purchase of 30 and random demand to see if your net income makes sense (I got \$1000). There is a special case you need to consider -- as a hint, when I purchased 5 TVs (and reset the seed), the profit should be \$1250 (some of you might get \$2875)
+
+```{r}
+set.seed(100)
+#TVs purchased for store inventory
+inventory <- 5
+
+#Estimated TV demand by customers during the sale
+demand <- sum(sample(0:5, 7, replace = TRUE, prob = c(0.15, 0.20, 0.30, 0.20, 0.10, 0.05)))
+
+sold <- min(demand, inventory)
+returned <- inventory - sold 
+net_margin <- (-1*(inventory * tvCost)) + (sold * tvRetail) + (returned * tvRefund)
+
+paste("Profit =", net_margin)
+```
+
+3) This is only one single instance of demand, but good simulations/probabilistic estimation would encourage us to repeat this process many times to get an idea of expected value and variability in net income.  Repeat the simualtion of demand and calculate the net income 500 times for a purchase of 30 TVs.  If you have reset the seed to 100, you should get an average net income of \$2450.80 and a standard deviation of \$1161.04.
+
+```{r}
+set.seed(100)
+#TVs purchased for store inventory
+inventory <- 30
+
+#Estimated TV demand by customers during the sale
+for(i in 1:500){
+  demand <- sum(sample(0:5, 7, replace = TRUE, prob = c(0.15, 0.20, 0.30, 0.20, 0.10, 0.05)))
+  sold <- min(demand, inventory)
+  returned <- inventory - sold 
+  net_margin [i]<- (-1*(inventory * tvCost)) + (sold * tvRetail) + (returned * tvRefund)
+}
+
+paste("Average Profit = ", mean(net_margin))
+paste("SD Profit = ",sd(net_margin))
+```
+
+4) To come up with an optimal number of TVs to buy, write a function with one argument (buy) that allows the user to specify how many TVs are bought and returns the average net income for 500 simulations at of buying 'buy' TVs. To test your function, set your seed to 100 and run the fucntion with buy = 30.  You function should return the same as the previous section (\$2450.80)
+
+```{r}
+set.seed(100)
+
+buy <- 30
+
+#function to loop through demand and return the mean of profit margin
+profit <- function(buy){
+  inventory <- buy
+  net_margin <- rep(NA, 500)
+  for(i in 1:500){
+    demand <- sum(sample(0:5, 7, replace = TRUE, prob = c(0.15, 0.20, 0.30, 0.20, 0.10, 0.05)))
+    sold <- min(demand, inventory)
+    returned <- inventory - sold 
+    net_margin [i]<- (-1*(inventory * tvCost)) + (sold * tvRetail) + (returned * tvRefund)
+  }
+  mean(net_margin)
+}
+#Average profit of TVs purchased for inventory
+profit(17)
+
+```
+
+5) Almost done! Now it is time to find the optimal number of TVs to buy (according to expected net income).  Wrap your function call in a loop that tries different numbers of TVs to buy (0 to 50) and store the incomes in a vector called incomes. 
+
+```{r}
+set.seed(100)
+
+#Sets incomes to 0
+incomes <- 0
+
+#Loop to calculate profit for TV sales between 1 & 50
+for(j in 1:50){
+  incomes[j] <- profit(j)
+}
+incomes
+
+
+```
+
+6) Now visualize and summarize your results.  Make a line graph of incomes vs. TVs bought.  To do this create a data frame with a first column order and the second income (I have put this line in the code below commented--uncomment when in use).  Now that you have a data frame, you can use ggplot!
+
+```{r}
+#Create data frame with columns order and income
+TVincomes <- data.frame(order = 1:50, income = incomes)
+
+#Line graph for income vs TVs purchased for inventory
+ggplot(TVincomes, aes(x = order, y = income)) +
+	geom_line(linewidth = 1.25,
+	          colour = "red") +
+  geom_smooth(span = 0.2,
+              colour = "lightgray",
+              fill = "lightgray" ,
+              linewidth = 0.01,
+              level = .999,
+              se = TRUE)+
+  xlab("Purchased") +
+  ylab("Profit")+
+  ggtitle("Average Profit vs TVs Purchased from Supplier")+
+  theme_bw()+
+  theme(axis.title.x = element_text(face = "bold", size = 14))+
+  theme(axis.title.y = element_text(face = "bold", size = 14))+
+  theme(title = element_text(face = "bold", size = 14))+
+  theme(panel.border = element_blank(), axis.line = element_line(colour = "black"))
+
+```
+
+7) Write a brief conclusion explaining your results and conclusions.
+
+In conclusion, the simulated scenario analysis has provided clear insights into 
+the optimal quantity of TVs to purchase, considering profitability. The results 
+clearly indicate that acquiring 17 TVs is the most advantageous choice, yielding
+an average profit of $3,233.00. Going below this quantity would mean missing 
+out on potential revenue while exceeding 17 TVs leads to diminishing returns.
+
+The accompanying graph visually reinforces this conclusion, illustrating a peak 
+in profit at the 17 TV mark. This simulation now provides data-backed insights 
+allowing for the best possible decision to be made, ensuring that resources are 
+used most efficiently to maximize profitability.The graph generated from the 
+incomes data frame is slightly irregular between x-axis points 17 and 23 
+TVs purchased. This is most likely due to relatively small number of TVs to 
+potentially buy or sell, and the probability values being close together. 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
