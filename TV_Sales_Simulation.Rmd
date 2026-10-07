@@ -94,7 +94,7 @@ profit <- function(buy){
   mean(net_margin)
 }
 #Average profit of TVs purchased for inventory
-profit(17)
+profit(buy)
 
 ```
 
@@ -146,17 +146,21 @@ ggplot(TVincomes, aes(x = order, y = income)) +
 
 In conclusion, the simulated scenario analysis has provided clear insights into 
 the optimal quantity of TVs to purchase, considering profitability. The results 
-clearly indicate that acquiring 17 TVs is the most advantageous choice, yielding
-an average profit of $3,233.00. Going below this quantity would mean missing 
-out on potential revenue while exceeding 17 TVs leads to diminishing returns.
+indicate that acquiring 17 TVs is the most advantageous choice, yielding
+an average profit of \$3,257.45. Going below this quantity would mean missing 
+out on potential revenue while exceeding 17 TVs lowers profit, because each 
+unsold TV is sold back to the dealer at a \$75 loss (bought for \$325, bought 
+back for \$250).
 
 The accompanying graph visually reinforces this conclusion, illustrating a peak 
 in profit at the 17 TV mark. This simulation now provides data-backed insights 
 allowing for the best possible decision to be made, ensuring that resources are 
-used most efficiently to maximize profitability.The graph generated from the 
+used most efficiently to maximize profitability. The graph generated from the 
 incomes data frame is slightly irregular between x-axis points 17 and 23 
-TVs purchased. This is most likely due to relatively small number of TVs to 
-potentially buy or sell, and the probability values being close together. 
+TVs purchased. This is due to simulation noise: each point on the graph is the 
+average of only 500 simulated promotions, so the averages fluctuate from 
+one order quantity to the next. Running more simulations per order quantity 
+would smooth out the curve. 
 
 
 
